@@ -76,14 +76,9 @@ h2{font-size:clamp(24px,5vw,34px)}
 .cal-punts i{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--text-2)}
 .cal-punts i.on{background:var(--fanal);border-color:var(--fanal)}
 #calibra{touch-action:none}
-.sincro{position:absolute;left:0;right:0;bottom:0;padding-block:12px calc(env(safe-area-inset-bottom,0px) + 12px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;place-items:center}
-.sincro-panell{background:rgba(26,34,70,.94)}
-.sincro-ara{margin:0;color:var(--text-2);font-size:14px;min-height:1.4em}
-.sincro-seg{margin:0;color:var(--text)!important;font-size:16px}
-.sincro-seg strong{display:block;font-size:clamp(18px,3vw,24px);margin-top:4px;color:var(--fanal)}
-#sincro-json{width:100%;font-family:var(--f-mono);font-size:12px;background:var(--nit);color:var(--text);border:1px solid var(--linia);border-radius:8px;padding:8px;resize:vertical}
-.enganxa{display:grid;gap:8px}
-#enganxa-text{width:100%;font:inherit;font-size:14px;background:var(--nit);color:var(--text);border:1px solid var(--linia);border-radius:8px;padding:8px;resize:vertical}
+.hud-dreta{display:flex;align-items:center;gap:8px}
+.pausa-btn{pointer-events:auto;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--linia);background:rgba(18,24,52,.78);color:var(--text);cursor:pointer;backdrop-filter:blur(6px);padding:0}
+.pausa-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
 .xifres{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--f-mono);font-size:13px;color:var(--text-2)}
 .xifres b{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
 .spotify{font-weight:700;font-size:14px;padding:.6em 1.1em;border-radius:999px;border:1.5px dashed var(--text-2)}
@@ -141,7 +136,7 @@ h2{font-size:clamp(24px,5vw,34px)}
 <div id="app">
   <canvas id="joc" aria-label="Camí del joc"></canvas>
   <div class="hud" id="hud" hidden>
-    <div class="hud-fila"><div class="pill" id="pill"><i id="pill-c"></i><div id="pill-t"></div></div><div class="tag" id="mode-tag" hidden>Passeig</div></div>
+    <div class="hud-fila"><div class="pill" id="pill"><i id="pill-c"></i><div id="pill-t"></div></div><div class="hud-dreta"><div class="tag" id="mode-tag" hidden>Passeig</div><button class="pausa-btn" id="b-pausa" type="button" aria-label="Pausa"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="4" y="3" width="4.2" height="14" rx="1.4" fill="currentColor"/><rect x="11.8" y="3" width="4.2" height="14" rx="1.4" fill="currentColor"/></svg></button></div></div>
     <div class="barra" id="barra"></div>
   </div>
   <div class="lletra" id="lletra" hidden></div>
@@ -160,23 +155,10 @@ h2{font-size:clamp(24px,5vw,34px)}
         </div>
         <div class="estat" id="estat-carrega">Carregant la cançó…</div>
         <div class="lletra-op">
-          <label class="chk" for="opt-sota"><input type="checkbox" id="opt-sota" checked> Lletra a sota</label>
-          <label class="btn petit" for="fitxer-lletra">Carrega la lletra</label>
-          <input type="file" id="fitxer-lletra" accept=".txt,.json,text/plain,application/json" hidden>
-          <button class="btn petit" id="b-enganxa" type="button">Enganxa la lletra</button>
-          <button class="btn petit" id="b-sincro" type="button" disabled>Sincronitza la lletra</button>
-          <span class="estat" id="estat-lletra">Sense lletra carregada. Fitxer de text, un vers per línia.</span>
-        </div>
-        <div class="lletra-op">
           <span class="chk">Sincronia del so</span>
           <span class="ajust"><button class="btn rodo" id="b-aj-menys" type="button" aria-label="Avança el so 10 mil·lisegons">−</button><output id="aj-val" title="Toca per tornar a zero">0 ms</output><button class="btn rodo" id="b-aj-mes" type="button" aria-label="Endarrereix el so 10 mil·lisegons">+</button></span>
           <button class="btn petit" id="b-calibra" type="button">Calibra tocant</button>
           <span class="estat">Amb auriculars Bluetooth o al mòbil el so pot anar endarrerit: calibra-ho un cop i queda desat.</span>
-        </div>
-        <div class="enganxa" id="enganxa-box" hidden>
-          <label for="enganxa-text" class="estat">Enganxa la lletra, un vers per línia (les línies buides no compten):</label>
-          <textarea id="enganxa-text" rows="6"></textarea>
-          <div class="botons"><button class="btn primari petit" id="b-desa-lletra" type="button">Desa la lletra</button></div>
         </div>
       </div>
     </div>
@@ -212,20 +194,19 @@ h2{font-size:clamp(24px,5vw,34px)}
     </div>
   </section>
 
-  <section class="sincro" id="sincro" hidden>
-    <div class="targeta sincro-panell">
+  <section class="capa" id="pausa" hidden>
+    <div class="targeta">
       <div class="cos-t">
-        <div id="sincro-marca">
-          <div class="eyebrow">Sincronitzant · vers <span id="sincro-n">1</span> de <span id="sincro-tot">71</span></div>
-          <p class="sincro-ara" id="sincro-ara">—</p>
-          <p class="sincro-seg">Toca la pantalla, o prem l'espai, just quan comenci: <strong id="sincro-seg"></strong></p>
-          <div class="botons"><button class="btn" id="b-desfes" type="button">Desfés l'últim</button><button class="btn primari" id="b-acaba" type="button">Acaba i desa</button></div>
+        <div class="eyebrow" id="pausa-ull">Pausa</div>
+        <h2>Un moment</h2>
+        <p id="pausa-text">Quan continuïs, la cançó torna enrere dos segons perquè agafis el ritme.</p>
+        <div class="botons">
+          <button class="btn primari" id="b-continua" type="button">Continua</button>
+          <button class="btn" id="b-reinicia" type="button">Torna a començar</button>
+          <button class="btn" id="b-menu" type="button">Menú</button>
         </div>
-        <div id="sincro-fet" hidden>
-          <div class="eyebrow">Sincronització desada</div>
-          <p>Els rètols, les escenes i la lletra de sota ja surten amb aquests temps. Si me'ls envies, els poso per defecte al joc.</p>
-          <textarea id="sincro-json" readonly rows="3" aria-label="Temps de cada vers"></textarea>
-          <div class="botons"><button class="btn primari" id="b-copia" type="button">Copia els temps</button><button class="btn" id="b-temps-auto" type="button">Torna als temps automàtics</button><button class="btn" id="b-sincro-tanca" type="button">Tanca</button></div>
+        <div class="lletra-op">
+          <label class="chk" for="opt-sota"><input type="checkbox" id="opt-sota" checked> Lletra a sota</label>
         </div>
       </div>
     </div>
@@ -249,8 +230,8 @@ h2{font-size:clamp(24px,5vw,34px)}
 
 <script>
 // <nucli>
-const MAPA={"bpm": 124.003, "durada": 199.17, "final": 190.4, "fases": [{"id": "quim", "inici": 0.0, "fi": 25.1, "tipus": "gir", "events": [1.63, 2.356, 2.84, 3.566, 4.05, 4.775, 5.501, 6.469, 7.678, 8.162, 9.13, 9.856, 11.066, 11.549, 12.275, 13.001, 14.211, 14.936, 16.872, 17.598, 19.049, 19.533, 20.259, 20.985, 21.468, 21.952, 22.92]}, {"id": "roger", "inici": 25.1, "fi": 77.6, "tipus": "gir", "events": [26.065, 27.275, 27.759, 28.243, 29.21, 29.694, 30.662, 31.146, 31.871, 33.081, 34.049, 35.017, 35.5, 35.984, 36.468, 36.952, 37.436, 37.92, 38.404, 38.887, 39.855, 40.823, 41.307, 42.274, 42.758, 43.484, 46.629, 47.113, 49.532, 50.016, 50.5, 50.984, 56.79, 57.274, 57.758, 58.242, 59.21, 59.693, 60.177, 60.661, 61.145, 61.629, 62.113, 62.597, 63.08, 63.564, 64.048, 64.532, 65.016, 65.5, 65.984, 66.468, 66.951, 67.435, 67.919, 68.403, 68.887, 69.371, 69.855, 70.338, 70.822, 71.306, 71.79, 72.274, 72.758, 73.242, 73.725, 74.209, 74.693, 75.177, 75.661, 76.145]}, {"id": "andreu", "inici": 77.6, "fi": 124.1, "tipus": "gir", "events": [79.048, 79.532, 80.499, 80.983, 81.467, 82.919, 83.403, 83.886, 84.37, 84.854, 85.338, 85.822, 86.79, 87.274, 88.241, 89.209, 90.661, 91.144, 94.048, 94.531, 95.015, 95.499, 96.467, 96.951, 97.918, 98.402, 98.886, 100.822, 101.789, 103.483, 104.692, 105.66, 106.628, 109.531, 111.467, 111.95, 112.434, 112.918, 113.402, 113.886, 114.37, 115.337, 115.821, 116.305, 117.273, 118.241, 118.724, 119.208, 120.176, 120.66, 121.144, 121.628, 122.353]}, {"id": "lluc", "inici": 124.1, "fi": 139.5, "tipus": "salt", "events": [124.531, 125.015, 125.378, 125.74, 126.224, 126.466, 126.95, 127.313, 127.676, 128.16, 128.402, 128.886, 129.248, 129.611, 130.095, 130.337, 130.821, 131.184, 131.547, 132.031, 132.273, 132.756, 133.119, 133.482, 133.966, 134.208, 134.692, 135.055, 135.418, 135.901, 136.143, 136.627, 136.99, 137.353, 137.837, 138.079]}, {"id": "pau", "inici": 139.5, "fi": 160.4, "tipus": "gir", "events": [140.498, 141.466, 142.434, 143.401, 144.127, 145.337, 146.304, 147.272, 147.998, 149.208, 150.175, 151.143, 152.111, 152.595, 153.079, 154.046, 155.014, 155.982, 156.949, 157.433, 157.917, 158.885]}, {"id": "gabriel", "inici": 160.4, "fi": 190.4, "tipus": "gir", "events": [161.788, 162.272, 162.756, 163.723, 164.691, 165.659, 166.627, 167.594, 168.562, 169.53, 170.498, 171.465, 171.949, 172.433, 173.401, 174.368, 175.336, 176.304, 177.03, 178.239, 178.965, 179.691, 180.175, 181.142, 181.626, 182.11, 183.078, 183.562, 185.981, 186.465, 186.949, 187.433, 187.916, 188.642]}], "t0": 0.1786};
-let VERSOS=[1.0, 3.55, 6.33, 8.55, 10.96, 12.87, 16.21, 17.99, 20.93, 24.43, 26.06, 28.54, 31.79, 34.5, 36.41, 38.33, 40.42, 42.33, 44.16, 45.99, 47.99, 51.1, 53.09, 59.08, 61.63, 64.41, 66.63, 69.04, 70.95, 74.29, 76.07, 79.01, 82.51, 84.14, 86.62, 89.87, 92.58, 94.49, 96.41, 98.5, 100.41, 102.24, 104.07, 106.07, 109.18, 111.17, 116.74, 123.88, 126.43, 129.21, 131.43, 133.84, 135.75, 139.09, 140.87, 143.81, 147.31, 148.94, 151.42, 154.67, 157.38, 159.29, 161.21, 163.3, 165.21, 167.04, 168.87, 170.87, 173.98, 175.97, 181.54];
+const MAPA={"bpm": 124.003, "durada": 199.17, "final": 190.4, "fases": [{"id": "quim", "inici": 0.0, "fi": 25.1, "tipus": "gir", "events": [1.946, 2.66, 3.548, 4.129, 4.704, 6.097, 7.026, 9.429, 9.922, 10.427, 11.13, 12.256, 12.993, 13.487, 14.183, 14.636, 15.942, 16.819, 17.985, 18.688, 19.205, 19.994, 20.987, 21.503, 22.014, 22.815]}, {"id": "roger", "inici": 25.1, "fi": 77.6, "tipus": "gir", "events": [27.267, 27.751, 29.202, 29.686, 30.654, 31.138, 31.622, 32.105, 32.589, 33.073, 34.525, 35.009, 35.492, 35.976, 36.944, 37.912, 38.396, 38.879, 39.847, 42.266, 42.75, 43.234, 43.718, 44.202, 45.17, 46.621, 48.073, 48.557, 49.524, 50.008, 50.492, 50.976, 51.46, 56.782, 57.266, 57.75, 58.234, 58.718, 59.202, 59.685, 60.169, 60.653, 61.137, 61.621, 62.105, 62.589, 63.072, 63.556, 64.04, 64.524, 65.008, 65.492, 65.976, 66.46, 66.943, 67.427, 67.911, 68.395, 68.879, 69.363, 69.847, 70.33, 71.056, 71.782, 72.266, 73.234, 73.717, 74.201, 74.685, 75.169, 76.137]}, {"id": "andreu", "inici": 77.6, "fi": 124.1, "tipus": "gir", "events": [79.04, 79.524, 80.008, 80.491, 81.459, 82.427, 82.911, 83.395, 84.362, 84.846, 85.814, 86.298, 86.782, 88.233, 89.201, 89.685, 90.653, 93.072, 94.04, 95.007, 96.943, 97.91, 98.878, 99.846, 100.33, 100.814, 101.297, 101.781, 103.233, 103.717, 104.684, 105.652, 107.104, 108.072, 108.555, 109.523, 110.491, 111.459, 112.426, 112.91, 113.394, 114.362, 115.329, 115.813, 116.297, 117.265, 118.716, 119.684, 120.168, 120.652, 121.136, 121.62, 122.103]}, {"id": "lluc", "inici": 124.1, "fi": 139.5, "tipus": "salt", "events": [125.007, 125.37, 125.732, 126.216, 126.458, 126.942, 127.305, 127.668, 128.152, 128.394, 128.878, 129.24, 129.603, 130.087, 130.329, 130.813, 131.176, 131.539, 132.023, 132.265, 132.748, 133.111, 133.474, 133.958, 134.2, 134.684, 135.047, 136.135, 136.619, 136.982, 137.829, 138.071]}, {"id": "pau", "inici": 139.5, "fi": 160.4, "tipus": "gir", "events": [141.458, 141.942, 142.426, 143.393, 144.119, 145.329, 145.813, 146.78, 147.264, 148.232, 148.716, 149.2, 150.167, 151.135, 151.619, 152.103, 153.554, 154.038, 154.522, 155.006, 155.974, 157.425, 158.877]}, {"id": "gabriel", "inici": 160.4, "fi": 190.4, "tipus": "gir", "events": [161.296, 161.78, 162.748, 163.715, 164.199, 165.409, 166.135, 166.619, 169.522, 170.49, 171.457, 171.941, 172.425, 173.151, 174.36, 175.328, 176.296, 176.78, 177.264, 178.231, 179.683, 180.651, 181.134, 181.618, 182.102, 182.586, 183.07, 183.554, 184.038, 185.973, 186.699, 187.425, 187.908, 188.634]}], "t0": 0.1706};
+let VERSOS=[1.388, 3.566, 5.743, 9.13, 10.824, 13.001, 16.872, 18.565, 20.259, 24.372, 26.307, 28.243, 33.081, 34.291, 36.468, 38.404, 40.339, 42.033, 44.21, 45.903, 48.081, 50.258, 53.161, 59.21, 61.387, 63.564, 66.951, 68.887, 71.064, 74.935, 77.112, 79.048, 82.435, 84.128, 86.306, 90.419, 92.112, 93.806, 96.467, 98.402, 100.096, 101.789, 104.209, 106.144, 108.563, 110.257, 113.16, 124.047, 126.466, 128.402, 132.031, 133.482, 135.901, 139.53, 141.708, 143.885, 147.514, 149.692, 151.627, 155.982, 158.159, 160.095, 162.03, 163.723, 165.901, 167.836, 170.014, 172.191, 174.126, 176.788, 178.723];
 const INK='#15121f',SKIN='#efc39e',PANTS='#2c3354',SHOE='#1b1725',BLUSH='#ee8f80',WOOD='#7c4a2b',BRASS='#e3b247',G=228,R=34;
 const TOL=0.16,SALT=0.42;
 const S=9,CAMD=5.8,CAMY=2.5,DRAW=88,LIM=3.2,LAT=4.2;
@@ -259,18 +240,18 @@ const org=(x,y)=>`transform-origin:${P(x)}px ${P(y)}px`;
 const rot=(x,y,a,ox,oy)=>{const t=a*Math.PI/180;return [ox+x*Math.cos(t)-y*Math.sin(t),oy+x*Math.sin(t)+y*Math.cos(t)]};
 const ST=`stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"`;
 
-/* Músics en l'ordre del joc */
+/* Músics en l'ordre del joc (fase 2: Gabriel, fase 6: Roger) */
 const MUSICS=[
   {id:'quim',art:'el ',nom:'Quim',inst:'Veu i guitarra',pose:'acustica',h:1.15,w:.8,roba:'#3f6fd6',ulleres:true,
    pel:{estil:'curt',color:'#e9c55e',f:{l:-11,m:-15,r:-12},tufs:[[-15,-1,-9,-14],[-2,-5,1,-16],[11,-4,9,-14],[23,3,13,-8]]},parp:2.7},
-  {id:'roger',art:'el ',nom:'Roger',inst:'Bateria',pose:'bateria',h:1.06,w:1,roba:'#3d9a6a',
-   pel:{estil:'curt',color:'#b4875c',f:{l:-12,m:-17,r:-12},tufs:[[-7,-4,-4,-10],[6,-5,5,-9]]},parp:.4},
+  {id:'gabriel',art:'el ',nom:'Gabriel',inst:'Guitarra elèctrica',pose:'guitarra',h:1,w:1,roba:'#d03b55',
+   pel:{estil:'curt',color:'#6e4428',f:{l:-9,m:-13,r:-19}},parp:1.2},
   {id:'andreu',art:"l'",nom:'Andreu',inst:'Baix',pose:'baix',h:1,w:1,roba:'#e07b39',pel:{estil:'arrissat',color:'#3b2519'},parp:2.1},
   {id:'lluc',art:'el ',nom:'Lluc',inst:'Palmes',pose:'palmes',poseFinal:'saxo',h:1.12,w:1,roba:'#2a9fab',
    pel:{estil:'curt',color:'#1b1613',f:{l:-14,m:-15,r:-14}},arracades:true,parp:4},
   {id:'pau',art:'el ',nom:'Pau',inst:'Teclat',pose:'teclat',h:1,w:1,roba:'#8b64d4',pel:{estil:'volum',color:'#17120f'},perilla:true,parp:3.3},
-  {id:'gabriel',art:'el ',nom:'Gabriel',inst:'Guitarra elèctrica',pose:'guitarra',h:1,w:1,roba:'#d03b55',
-   pel:{estil:'curt',color:'#6e4428',f:{l:-9,m:-13,r:-19}},parp:1.2}
+  {id:'roger',art:'el ',nom:'Roger',inst:'Bateria',pose:'bateria',h:1.06,w:1,roba:'#3d9a6a',
+   pel:{estil:'curt',color:'#b4875c',f:{l:-12,m:-17,r:-12},tufs:[[-7,-4,-4,-10],[6,-5,5,-9]]},parp:.4}
 ];
 
 /* ---------- ninots de cara (SVG) ---------- */
@@ -943,36 +924,53 @@ let Wc=0,Hc=0,DPR=1,DPRmax=1.5;
 function mida(){DPR=Math.min(DPRmax,window.devicePixelRatio||1);Wc=cv.clientWidth;Hc=cv.clientHeight;cv.width=Math.round(Wc*DPR);cv.height=Math.round(Hc*DPR)}
 window.addEventListener('resize',mida);mida();
 const cami=construeixCami();
-const VERSOS_AUTO=VERSOS.slice();
-try{const g=JSON.parse(localStorage.getItem('ludwig-temps')||'null');if(Array.isArray(g)&&g.length===VERSOS.length&&g.every(x=>isFinite(x)))VERSOS=g}catch(e){}
+try{localStorage.removeItem('ludwig-temps');localStorage.removeItem('ludwig-lletra')}catch(e){}   // restes de versions anteriors
 let ciutat=construeixCiutat(cami);
 const img64=svg=>{const im=new Image();im.src='data:image/svg+xml;base64,'+btoa(svg);return im};
 const spritesE={},spritesF={},spritesFinal={};
 MUSICS.forEach(m=>{spritesE[m.id]=[img64(svgEsquena(m,0)),img64(svgEsquena(m,1))];spritesF[m.id]=img64(svgNinot(m));spritesFinal[m.id]=img64(svgNinot(m,m.poseFinal))});
 const $=id=>document.getElementById(id);
 
-/* lletra: la carreguen els usuaris (fitxer de text, un vers per línia); els temps ja estan calculats */
+/* lletra: el joc llegeix lletra.txt (al costat de l'index.html). Cada línia es casa amb el seu vers comptant síl·labes,
+   així una línia ajuntada o partida (p. ex. la tornada repetida en una sola línia) no desquadra la resta. */
 let LLETRA=[];
 const PANC=[['#f4efe4',INK],['#d03b55','#f4efe4'],['#3f6fd6','#f4efe4'],['#e9b83f',INK],['#3d9a6a','#f4efe4'],['#8b64d4','#f4efe4']];
-function posaLletra(linies,origen){
-  LLETRA=linies.filter(l=>l&&l.text&&String(l.text).trim()&&isFinite(l.t)).map((l,k)=>({i:l.i!=null?l.i:k,t:+l.t,text:String(l.text).trim()})).sort((a,b)=>a.t-b.t);
+const REFSIL=[10, 9, 11, 7, 9, 12, 9, 9, 15, 8, 9, 15, 6, 8, 8, 6, 8, 10, 8, 8, 9, 8, 8, 9, 8, 12, 9, 9, 14, 10, 9, 13, 7, 8, 12, 7, 6, 9, 7, 8, 7, 9, 7, 9, 7, 8, 8, 9, 9, 12, 8, 8, 15, 10, 8, 13, 8, 8, 12, 9, 7, 8, 7, 9, 8, 8, 7, 8, 9, 8, 8];
+function sil(s){s=String(s).toLowerCase().replace(/q[uü](?=[eiéèí])/g,'q').replace(/g[u](?=[eiéèí])/g,'g');const m=s.match(/[ïü]|[aeiouàèéíòóú]+/g);return m?m.length:0}
+function casaLinies(L){
+  const n=L.length,m=REFSIL.length,f=L.map(sil),INF=1e9;
+  const C=[],B=[];for(let i=0;i<=n;i++){C.push(new Float64Array(m+1).fill(INF));B.push(new Int8Array(m+1))}
+  C[0][0]=0;
+  for(let i=0;i<=n;i++)for(let j=0;j<=m;j++){const c=C[i][j];if(c>=INF)continue;
+    const up=(ii,jj,v,op)=>{if(v<C[ii][jj]){C[ii][jj]=v;B[ii][jj]=op}};
+    if(i<n&&j<m)up(i+1,j+1,c+Math.abs(f[i]-REFSIL[j]),1);
+    if(i<n&&j+1<m)up(i+1,j+2,c+1.5+Math.abs(f[i]-REFSIL[j]-REFSIL[j+1]),2);
+    if(i+1<n&&j<m)up(i+2,j+1,c+1.5+Math.abs(f[i]+f[i+1]-REFSIL[j]),3);
+    if(i<n)up(i+1,j,c+4+f[i]*.2,4);
+    if(j<m)up(i,j+1,c+4,5);
+  }
+  const out=new Array(n).fill(null);let i=n,j=m;
+  while(i>0||j>0){const op=B[i][j];
+    if(op===1){out[i-1]={i:j-1,t:VERSOS[j-1]};i--;j--}
+    else if(op===2){out[i-1]={i:j-2,t:VERSOS[j-2]};i--;j-=2}
+    else if(op===3){const t0=VERSOS[j-1],t1=j<m?VERSOS[j]:t0+2,fr=f[i-2]/Math.max(1,f[i-2]+f[i-1]);out[i-2]={i:j-1,t:t0};out[i-1]={i:j-1,t:t0+fr*(t1-t0)};i-=2;j--}
+    else if(op===4)i--;else if(op===5)j--;else break}
+  return out;
+}
+function posaLletra(linies){
+  LLETRA=linies.filter(l=>l&&l.text&&isFinite(l.t)).sort((a,b)=>a.t-b.t);
   ciutat.pancartes=ciutat.pancartes.filter(p=>p.tipus!=='vers');ciutat.edificis.forEach(e=>{delete e.vers});
-  LLETRA.forEach((l,i)=>{const z=S*l.t+15,[col,tcol]=PANC[i%PANC.length];ciutat.pancartes.push({tipus:'vers',z,text:l.text,col,tcol});
-    const side=i%2?1:-1,zz=z+9;const e=ciutat.edificis.find(e=>e.side===side&&zz>=e.z0&&zz<=e.z1&&!/estadi|muralla|estacio|sagrera/.test(e.estil));if(e&&!e.vers)e.vers=l.text});
-  $('b-sincro').disabled=!LLETRA.length;
-  $('estat-lletra').textContent=LLETRA.length?`Lletra carregada${origen?' ('+origen+')':''}: ${LLETRA.length} versos.`:'Sense lletra carregada. Fitxer de text, un vers per línia.';
+  /* la pancarta queda a sobre just quan el vers ja ha començat; l'aparador, una mica abans */
+  LLETRA.forEach((l,i)=>{const z=S*l.t+12,[col,tcol]=PANC[i%PANC.length];ciutat.pancartes.push({tipus:'vers',z,text:l.text,col,tcol});
+    const side=i%2?1:-1,zz=S*l.t+8;const e=ciutat.edificis.find(e=>e.side===side&&zz>=e.z0&&zz<=e.z1&&!/estadi|muralla|estacio|sagrera/.test(e.estil));if(e&&!e.vers)e.vers=l.text});
 }
-/* els fitxers de text desats amb el Bloc de notes antic no són UTF-8: si cal, es llegeixen com a Windows-1252 */
+/* els fitxers desats amb el Bloc de notes antic no són UTF-8: si cal, es llegeixen com a Windows-1252 */
 function descodifica(buf){try{return new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){try{return new TextDecoder('windows-1252').decode(buf)}catch(e2){return new TextDecoder().decode(buf)}}}
-function llegeixLletra(txt,nom){
-  const tx=String(txt||'').replace(/^﻿/,'');
-  if(/\.json$/i.test(nom||'')||/^\s*\[/.test(tx)){const arr=JSON.parse(tx);return arr.map((x,i)=>typeof x==='string'?{i,t:VERSOS[i],text:x}:{i,t:x.t!=null?x.t:VERSOS[i],text:x.text})}
-  return tx.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,VERSOS.length).map((s,i)=>({i,t:VERSOS[i],text:s}));
+function llegeixLletra(txt){
+  const L=String(txt||'').replace(/^﻿/,'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  return casaLinies(L).map((c,k)=>c&&{i:c.i,t:c.t,text:L[k]}).filter(Boolean);
 }
-$('fitxer-lletra').addEventListener('change',ev=>{const f=ev.target.files&&ev.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{const l=llegeixLletra(descodifica(rd.result),f.name);posaLletra(l,f.name);try{localStorage.setItem('ludwig-lletra',JSON.stringify(l))}catch(e){}}catch(e){$('estat-lletra').textContent="No s'ha pogut llegir el fitxer. Ha de ser text pla, un vers per línia."}};rd.readAsArrayBuffer(f);ev.target.value=''});
-try{const g=localStorage.getItem('ludwig-lletra');if(g&&g.indexOf('\ufffd')<0)posaLletra(JSON.parse(g),'desada');else if(g){localStorage.removeItem('ludwig-lletra');$('estat-lletra').textContent="La lletra desada tenia accents mal llegits. Torna-la a carregar."}}catch(e){}
-['lletra.txt','lletra.json'].forEach(nom=>{try{fetch(nom).then(r=>r.ok?r.arrayBuffer():null).then(b=>{if(b&&!LLETRA.length){try{posaLletra(llegeixLletra(descodifica(b),nom),nom)}catch(e){}}}).catch(()=>{})}catch(e){}});
+try{fetch('lletra.txt',{cache:'no-cache'}).then(r=>r.ok?r.arrayBuffer():null).then(b=>{if(b){try{posaLletra(llegeixLletra(descodifica(b)))}catch(e){}}}).catch(()=>{})}catch(e){}
 try{const v=localStorage.getItem('ludwig-sota');if(v!==null)$('opt-sota').checked=v==='1'}catch(e){}
 $('opt-sota').addEventListener('change',()=>{try{localStorage.setItem('ludwig-sota',$('opt-sota').checked?'1':'0')}catch(e){}});
 
@@ -990,7 +988,7 @@ function carrega(){
   if(!ac){$('estat-carrega').textContent='Aquest navegador no pot reproduir la cançó.';return}
   fetch('canco.mp3').then(r=>{if(!r.ok)throw new Error(r.status);return r.arrayBuffer()})
     .then(a=>new Promise((res,rej)=>ac.decodeAudioData(a,res,rej)))
-    .then(b=>{buf=b;$('estat-carrega').textContent='A punt. Millor amb so.';$('b-juga').disabled=false;$('b-passeig').disabled=false})
+    .then(b=>{buf=b;mesuraInici(b);$('estat-carrega').textContent='A punt. Millor amb so.';$('b-juga').disabled=false;$('b-passeig').disabled=false})
     .catch(()=>{$('estat-carrega').textContent="No s'ha pogut carregar la cançó. Torna a obrir la pàgina."});
 }
 carrega();
@@ -1010,18 +1008,25 @@ function desfasa(){
 const instant=ev=>{const ts=ev&&ev.timeStamp,n=performance.now();return ts>0&&ts<=n+5&&n-ts<500?ts:n};
 const tempsCru=ms=>(ms!==undefined?ms:performance.now())/1000+desfasa();
 const tempsAudio=ms=>tempsCru(ms)-AJUST;
-function sona(off,pre){atura(true);rel.off=null;src=ac.createBufferSource();src.buffer=buf;gain=ac.createGain();src.connect(gain);gain.connect(ac.destination);const at=ac.currentTime+.06+pre;src.start(at,Math.max(0,off));base=at-off}
+/* Alguns navegadors deixen el silenci inicial del codificador MP3 dins del so descodificat i tot arriba uns 25 ms tard.
+   Es mesura on comença el primer so (a l'original és a 1,2633 s) i es compensa. */
+let OFFMP3=0;
+function mesuraInici(b){try{const d0=b.getChannelData(0),d1=b.numberOfChannels>1?b.getChannelData(1):d0,n=Math.min(d0.length,Math.round(b.sampleRate*1.7));
+  for(let i=0;i<n;i++){if(Math.abs((d0[i]+d1[i])/2)>.02){const dt=i/b.sampleRate-1.2633;if(Math.abs(dt)<.12)OFFMP3=dt;return}}}catch(e){}}
+function sona(off,pre){atura(true);rel.off=null;src=ac.createBufferSource();src.buffer=buf;gain=ac.createGain();src.connect(gain);gain.connect(ac.destination);
+  const at=ac.currentTime+.06+pre,o=Math.max(0,off)+OFFMP3;if(o>=0)src.start(at,o);else src.start(at-o,0);base=at-Math.max(0,off)}
 function atura(rapid){if(src){try{gain.gain.setTargetAtTime(0,ac.currentTime,rapid?.01:.12);src.stop(ac.currentTime+(rapid?.05:.5))}catch(e){}src=null}}
 
 /* partida */
-const E={estat:'inici',mode:'joc',t:-1,idx:0,encerts:0,perfectes:0,intents:0,cai:null,snap:true,fase:-1,finalFet:false,des:0};
+const E={estat:'inici',mode:'joc',t:-1,idx:0,encerts:0,perfectes:0,intents:0,cai:null,snap:true,fase:-1,finalFet:false,des:0,gracia:-1,pausaT:0};
 function comenca(mode,des){
   if(!buf)return;ac.resume&&ac.resume();try{document.activeElement&&document.activeElement.blur&&document.activeElement.blur()}catch(e){}
-  E.mode=mode;E.estat='joc';E.cai=null;E.finalFet=false;E.fase=-1;E.des=des;E.snap=true;
+  E.mode=mode;E.estat='joc';E.cai=null;E.finalFet=false;E.fase=-1;E.des=des;E.snap=true;E.gracia=des>0?des-.25:-1;
   if(des===0){E.encerts=0;E.perfectes=0;E.intents=0}
   if(mode==='joc')E.intents++;
   cami.events.forEach(e=>{e.fet=e.t<des});E.idx=cami.events.findIndex(e=>!e.fet);if(E.idx<0)E.idx=cami.events.length;
-  ['inici','caiguda','final'].forEach(id=>$(id).hidden=true);$('hud').hidden=false;$('mode-tag').hidden=mode!=='passeig';$('lletra').hidden=true;
+  ['inici','caiguda','final','pausa'].forEach(id=>$(id).hidden=true);$('hud').hidden=false;$('mode-tag').hidden=mode!=='passeig';$('lletra').hidden=true;
+  $('b-pausa').hidden=false;
   if(des===0)sona(0,1.4);else sona(des-1,.5);
   avis("Prepara't…",mode==='passeig'?'Mode passeig':'Toca per girar',1200);
 }
@@ -1042,14 +1047,15 @@ function caure(motiu,e){
 }
 function toc(ev){
   if(ev&&ev.type==='pointerdown'&&ev.target&&ev.target.closest&&ev.target.closest('a,button,label,input'))return;
-  if(E.estat==='joc'&&E.sincro){marcaVers(tempsAudio(instant(ev)));return}
   if(E.estat!=='joc'||E.mode!=='joc')return;
-  const t=tempsAudio(instant(ev));if(t<0||t>=FINAL)return;
+  const t=tempsAudio(instant(ev));if(t<0||t>=FINAL||t<E.gracia)return;
   const e=cami.events[E.idx];
   if(e&&Math.abs(t-e.t)<=tolDe(e))encert(e,t,false);else caure('aviat',e);
 }
 $('app').addEventListener('pointerdown',ev=>{if(ev.target.closest&&ev.target.closest('a,button,label,input'))return;if(E.estat==='joc')ev.preventDefault();toc(ev)});
-window.addEventListener('keydown',ev=>{if(ev.repeat)return;if(ev.code==='Space'||ev.code==='Enter'||ev.code==='ArrowUp'){if(E.estat==='joc'){ev.preventDefault();toc(ev)}else if(CAL.actiu){ev.preventDefault();tocCal(ev)}}});
+window.addEventListener('keydown',ev=>{if(ev.repeat)return;
+  if(ev.code==='Escape'||ev.code==='KeyP'){if(E.estat==='joc'){ev.preventDefault();pausa()}else if(E.estat==='pausa'){ev.preventDefault();continua()}return}
+  if(ev.code==='Space'||ev.code==='Enter'||ev.code==='ArrowUp'){if(E.estat==='joc'){ev.preventDefault();toc(ev)}else if(E.estat==='pausa'&&ev.code==='Space'){ev.preventDefault();continua()}else if(CAL.actiu){ev.preventDefault();tocCal(ev)}}});
 $('b-juga').onclick=()=>comenca('joc',0);
 $('b-passeig').onclick=()=>comenca('passeig',0);
 $('b-tornahi').onclick=()=>comenca('joc',FASES[E.cai?E.cai.fase:0].inici);
@@ -1057,7 +1063,7 @@ $('b-cai-passeig').onclick=()=>comenca('passeig',FASES[E.cai?E.cai.fase:0].inici
 $('b-inici').onclick=()=>comenca('joc',0);
 $('b-repeteix').onclick=()=>comenca('joc',0);
 function mostraFinal(){
-  E.finalFet=true;if(E.sincro)return;const tot=cami.events.length;
+  E.finalFet=true;const tot=cami.events.length;
   $('final-x').innerHTML=E.mode==='passeig'?`<span>Has fet el passeig sencer</span>`:`<span>Encerts <b>${E.encerts}</b> de <b>${tot}</b></span><span>Perfectes <b>${E.perfectes}</b></span><span>Intents <b>${E.intents}</b></span>`;
   $('final-t').textContent=E.mode==='passeig'?'Passeig acabat':(E.intents===1?'Nit perfecta, a la primera!':'Nit completada');
   $('final').hidden=false;
@@ -1068,9 +1074,10 @@ function logica(t){
   if(e&&E.mode==='joc'&&t>e.t+tolDe(e)){caure('tard',e);return}
   if(t>=0){const f=faseDe(t);if(f!==E.fase){E.fase=f;actualitzaHud(f);if(t<FINAL&&(t-FASES[f].inici<1.5||f===faseDe(E.des))){const m=MUSICS[f];avis(`Fase ${f+1} · ${m.nom}`,FASES[f].tipus==='salt'?'Toca per saltar':'Toca per girar',2000)}}}
   $('marca').style.left=Math.max(0,Math.min(100,t/FINAL*100))+'%';
-  if(LLETRA.length&&$('opt-sota').checked&&!E.sincro){let l=null;for(const x of LLETRA){if(x.t<=t)l=x;else break}const vis=!!l&&t-l.t<6;$('lletra').hidden=!vis;if(vis&&$('lletra').textContent!==l.text)$('lletra').textContent=l.text}else $('lletra').hidden=true;
+  if(LLETRA.length&&$('opt-sota').checked){let l=null;for(const x of LLETRA){if(x.t<=t)l=x;else break}const vis=!!l&&t-l.t<6;$('lletra').hidden=!vis;if(vis&&$('lletra').textContent!==l.text)$('lletra').textContent=l.text}else $('lletra').hidden=true;
   if(t>=FINAL+2.2&&!E.finalFet)mostraFinal();
-  if(t>=MAPA.durada){E.estat='fi';atura(false);if(E.sincro)acabaSincro()}
+  if(t>=FINAL+2.2)$('b-pausa').hidden=true;
+  if(t>=MAPA.durada){E.estat='fi';atura(false)}
 }
 function actorsEn(t){
   const out=[],f=Math.max(0,faseDe(t)),m=MUSICS[f];
@@ -1114,29 +1121,25 @@ function frame(){
 const cost={m:0,n:0};
 requestAnimationFrame(frame);
 
-/* ---------- sincronitzar la lletra tocant la pantalla ---------- */
-function textVers(i){const l=LLETRA.find(l=>l.i===i);return l?l.text:`Vers ${i+1}`}
-function pintaSincro(){const S_=E.sincro;$('sincro-n').textContent=Math.min(S_.i+1,VERSOS.length);$('sincro-tot').textContent=VERSOS.length;
-  $('sincro-ara').textContent=S_.i>0?textVers(S_.i-1):'—';$('sincro-seg').textContent=S_.i<VERSOS.length?textVers(S_.i):'Ja els tens tots';}
-function marcaVers(ta){const S_=E.sincro;if(!S_||S_.i>=VERSOS.length)return;const t=Math.max(0,(ta!==undefined?ta:tempsAudio())-.12);S_.temps[S_.i]=+t.toFixed(2);S_.i++;pintaSincro();if(S_.i>=VERSOS.length)setTimeout(acabaSincro,600)}
-function comencaSincro(){if(!LLETRA.length||!buf)return;comenca('passeig',0);E.sincro={i:0,temps:[]};$('sincro').hidden=false;$('sincro-fet').hidden=true;$('sincro-marca').hidden=false;$('hud').hidden=true;pintaSincro()}
-function acabaSincro(){const S_=E.sincro;if(!S_||S_.fet)return;S_.fet=true;
-  const nous=VERSOS.slice();let canvi=0;
-  for(let i=0;i<VERSOS.length;i++){if(S_.temps[i]!=null){canvi=S_.temps[i]-VERSOS[i];nous[i]=S_.temps[i]}else if(i>=S_.i&&S_.i>0){nous[i]=+(VERSOS[i]+canvi).toFixed(2)}}
-  for(let i=1;i<nous.length;i++)if(nous[i]<=nous[i-1]+.3)nous[i]=+(nous[i-1]+.3).toFixed(2);
-  VERSOS=nous;try{localStorage.setItem('ludwig-temps',JSON.stringify(VERSOS))}catch(e){}
-  const ll=LLETRA.map(l=>({i:l.i,t:VERSOS[l.i],text:l.text}));ciutat=construeixCiutat(cami);posaLletra(ll,'sincronitzada');try{localStorage.setItem('ludwig-lletra',JSON.stringify(ll))}catch(e){}
-  $('sincro-marca').hidden=true;$('sincro-fet').hidden=false;$('sincro-json').value=JSON.stringify(VERSOS);atura(false);E.estat='inici';E.sincro=null;
+/* ---------- pausa ---------- */
+/* En continuar, la cançó torna 2 s enrere: els girs d'aquest tros ja estan fets i els tocs no compten fins al punt on s'havia aturat. */
+function pausa(){
+  if(E.estat!=='joc'||E.finalFet)return;
+  E.pausaT=Math.max(0,E.t);E.estat='pausa';atura(true);try{ac.suspend&&ac.suspend()}catch(e){}
+  $('pausa').hidden=false;$('lletra').hidden=true;$('avis').classList.remove('on');
 }
-$('b-sincro').onclick=comencaSincro;
-$('b-desfes').onclick=()=>{const S_=E.sincro;if(S_&&S_.i>0){S_.i--;S_.temps[S_.i]=null;pintaSincro()}};
-$('b-acaba').onclick=()=>acabaSincro();
-$('b-copia').onclick=()=>{const v=$('sincro-json').value;try{navigator.clipboard.writeText(v).then(()=>{$('b-copia').textContent='Copiat'},()=>{$('sincro-json').select()})}catch(e){$('sincro-json').select()}};
-$('b-sincro-tanca').onclick=()=>{$('sincro').hidden=true;$('inici').hidden=false;$('hud').hidden=true;$('lletra').hidden=true};
-$('b-temps-auto').onclick=()=>{try{localStorage.removeItem('ludwig-temps')}catch(e){}VERSOS=VERSOS_AUTO.slice();const ll=LLETRA.map(l=>({i:l.i,t:VERSOS[l.i],text:l.text}));ciutat=construeixCiutat(cami);if(ll.length)posaLletra(ll,'temps automàtics');$('b-temps-auto').textContent='Temps automàtics restaurats'};
-
-$('b-enganxa').onclick=()=>{const b=$('enganxa-box');b.hidden=!b.hidden;if(!b.hidden)$('enganxa-text').focus()};
-$('b-desa-lletra').onclick=()=>{const tx=$('enganxa-text').value;if(!tx.trim())return;try{const l=llegeixLletra(tx,'enganxada.txt');posaLletra(l,'enganxada');try{localStorage.setItem('ludwig-lletra',JSON.stringify(l))}catch(e){}$('enganxa-box').hidden=true}catch(e){$('estat-lletra').textContent="No s'ha pogut llegir el text."}};
+function continua(){
+  if(E.estat!=='pausa')return;
+  try{ac.resume&&ac.resume()}catch(e){}try{document.activeElement&&document.activeElement.blur&&document.activeElement.blur()}catch(e){}
+  $('pausa').hidden=true;E.estat='joc';E.snap=true;E.gracia=E.pausaT-.05;
+  sona(Math.max(0,E.pausaT-2),.25);avis('Som-hi',E.mode==='passeig'?'Mode passeig':'Escolta i torna-hi',1400);
+}
+$('b-pausa').onclick=ev=>{ev.stopPropagation();pausa()};
+$('b-continua').onclick=continua;
+$('b-reinicia').onclick=()=>{$('pausa').hidden=true;try{ac.resume&&ac.resume()}catch(e){}comenca(E.mode,0)};
+$('b-menu').onclick=()=>{$('pausa').hidden=true;try{ac.resume&&ac.resume()}catch(e){}E.estat='inici';$('hud').hidden=true;$('lletra').hidden=true;$('inici').hidden=false};
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&E.estat==='joc')pausa()});
+window.addEventListener('pagehide',()=>{if(E.estat==='joc')pausa()});
 
 /* ---------- calibrar el ritme: 16 cops, la persona toca quan els sent ---------- */
 const CAL={actiu:false,tocs:[],n:16,t:null};
