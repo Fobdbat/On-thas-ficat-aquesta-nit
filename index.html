@@ -77,6 +77,22 @@ h2{font-size:clamp(24px,5vw,34px)}
 .cal-punts i.on{background:var(--fanal);border-color:var(--fanal)}
 #calibra{touch-action:none}
 .hud-dreta{display:flex;align-items:center;gap:8px}
+.final-capa{place-items:end center;background:linear-gradient(to bottom,rgba(12,16,38,0) 35%,rgba(12,16,38,.82));backdrop-filter:none}
+.final-capa .targeta{background:rgba(26,34,70,.93)}
+.marcador{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.casella{display:grid;gap:2px;align-content:start;background:var(--nit);border:1px solid var(--linia);border-radius:12px;padding:10px 10px 9px}
+.casella.destaca{border-color:var(--fanal)}
+.casella .et{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);line-height:1.25}
+.casella b{font-family:var(--f-display);font-weight:400;font-size:clamp(22px,6.4vw,32px);line-height:1.05;color:var(--text);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.casella.destaca b{color:var(--fanal)}
+.casella small{font-size:12px;color:var(--text-2);line-height:1.3}
+.nota-final{font-size:13.5px}
+.final-capa .cos-t{padding:14px 16px 16px;gap:10px}
+.final-capa h2{font-size:clamp(22px,6vw,30px)}
+.ull-final{font-size:11px;letter-spacing:.04em}
+.botons-final{flex-wrap:nowrap}
+.botons-final .btn{font-size:14px;padding:.6em 1em;white-space:nowrap}
+
 .pausa-btn{pointer-events:auto;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--linia);background:rgba(18,24,52,.78);color:var(--text);cursor:pointer;backdrop-filter:blur(6px);padding:0}
 .pausa-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
 .xifres{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--f-mono);font-size:13px;color:var(--text-2)}
@@ -212,14 +228,18 @@ h2{font-size:clamp(24px,5vw,34px)}
     </div>
   </section>
 
-  <section class="capa" id="final" hidden>
+  <section class="capa final-capa" id="final" hidden>
     <div class="targeta">
-      <div class="esc ninot toca" id="final-esc"></div>
       <div class="cos-t">
-        <div class="eyebrow">Fi de la nit</div>
+        <div class="eyebrow ull-final">On t'has ficat aquesta nit? · La Ludwig Band</div>
         <h2 id="final-t">Nit completada</h2>
-        <div class="xifres" id="final-x"></div>
-        <div class="botons">
+        <div class="marcador" id="marcador">
+          <div class="casella"><span class="et">Cops perfectes</span><b id="m-perf">0</b><small id="m-perf-de">de 0</small></div>
+          <div class="casella destaca"><span class="et">Desviació total</span><b id="m-desv">0</b><small id="m-desv-mitja">ms</small></div>
+          <div class="casella"><span class="et">Intents</span><b id="m-int">1</b><small id="m-int-txt">partida</small></div>
+        </div>
+        <p class="nota-final" id="final-nota">Guanya qui suma menys mil·lisegons.</p>
+        <div class="botons botons-final">
           <a class="btn" id="b-spotify" href="https://open.spotify.com/track/4vv5X7VPxCOwF0DzIZtOd8" target="_blank" rel="noopener">Escolta-la a Spotify</a>
           <button class="btn primari" id="b-repeteix" type="button">Torna a jugar</button>
         </div>
@@ -506,7 +526,9 @@ function escenes(){
     {z:zz(V_(58)),x:5.8,tipus:'adeu'},
     {z:zz(V_(60)),x:5.4,tipus:'revisor'},
     {z:zz(V_(67)),x:-5.9,tipus:'lleo'},
-    {z:S*(FINAL+1.7)+9,x:0,tipus:'escenari'}
+    {z:S*(FINAL+1.7)+9,x:0,tipus:'escenari'},
+    // el públic, d'esquena a nosaltres i de cara a l'escenari
+    ...[0,1,2,3].flatMap(r=>[0,1,2,3,4,5].map(j=>({z:S*(FINAL+1.7)+2.3+r*1.45,x:-6.1+j*2.45+(r%2)*1.1-.5,tipus:'public',fila:r})))
   ];
 }
 function construeixCiutat(cami){
@@ -716,6 +738,21 @@ D.revisor=(c,p,t)=>{persona(c,10,0,{cos:'#2d3b6b',cabell:'#5a3a22',barret:'revis
   for(let i=0;i<6;i++){const a=(t*1.1+i*.17)%1;cercle(c,4+Math.sin(i*2)*16,-40-a*50,3.4,`rgba(242,193,78,${1-a})`,1)}};
 D.lleo=(c)=>{ombra(c,0,0,44,8);caixa(c,-36,-22,72,22,2,'#b9b2a3',1.8);const b='#8a6a3a';el(c,-4,-38,26,13,b,2);cercle(c,20,-50,15,'#6e5230',2);cercle(c,22,-48,9,b,1.6);
   for(const dx of [-22,-10,6,16])caixa(c,dx,-34,6,12,2,b,1.4);c.beginPath();c.moveTo(-28,-40);c.quadraticCurveTo(-42,-50,-36,-62);c.strokeStyle=b;c.lineWidth=4;c.stroke();punt(c,24,-50,1.4,INK)};
+/* públic del concert: salten a cada temps, mans amunt, llums de mòbil i notes que pugen (corejant la cançó) */
+D.public=(c,p,t,L)=>{
+  const bt=((t-MAPA.t0)*MAPA.bpm/60),R=rng(Math.floor(p.s*1e6));
+  for(let i=0;i<3;i++){
+    const dx=-24+i*24+(R()-.5)*8,dy=(R()-.5)*6,ph=R()*.18,col=COLS[Math.floor(R()*8)],pel=CABELLS[Math.floor(R()*7)],llarg=R()>.55,mida=.92+R()*.16;
+    const u=((bt+ph)%1+1)%1,salt=Math.pow(Math.max(0,Math.sin(u*Math.PI)),2)*7*(R()>.25?1:.3),dalt=(Math.floor(bt+ph)+i)%2===0;
+    const mobil=R()>.78,notes=R()>.5;
+    c.save();c.translate(dx,dy);
+    persona(c,0,-salt,{esquena:true,cos:col,cabell:pel,llarg,mida,bracos:dalt?'amunt':'mans'});
+    cercle(c,0,-salt-38.4*mida,7.7*mida,pel,1.3);if(llarg){caixa(c,-7*mida,-salt-40*mida,14*mida,12*mida,4,pel,1.2)}
+    if(mobil&&dalt){const hx=12*mida,hy=-salt-46*mida;caixa(c,hx-2.5,hy-8,5,8,1.5,'#dff1ff',1);L.push({x:hx,y:hy-4,r:20,col:'210,235,255',a:.45})}
+    if(notes){const f=((t*.7+R())%1),sym=R()>.5?'♪':'♫',nx=(R()-.5)*18;c.globalAlpha*=1-f;txt(c,sym,nx,-salt-60*mida-f*26,11,'#fff3c4')}
+    c.restore();
+  }
+};
 D.escenari=(c,p,t,L)=>{ombra(c,0,0,160,14);caixa(c,-150,-24,300,24,3,'#3a3550',2);caixa(c,-150,-130,10,106,2,'#2f3446',1.6);caixa(c,140,-130,10,106,2,'#2f3446',1.6);
   caixa(c,-150,-138,300,14,3,'#d03b55',2);for(let i=0;i<14;i++)poli(c,[-146+i*21,-124,-136+i*21,-112,-126+i*21,-124],COLS[i%8],1);
   for(let i=0;i<4;i++){const lx=-110+i*73,on=.6+.4*Math.sin(t*6.45+i);caixa(c,lx-8,-132,16,10,2,'#fff3c4',1.4);L.push({x:lx,y:-80,r:70,col:'255,230,170',a:.45*on})}};
@@ -978,7 +1015,7 @@ $('opt-sota').addEventListener('change',()=>{try{localStorage.setItem('ludwig-so
 const terraSvg=(x,w)=>`<rect x="${x}" y="${G-6}" width="${w}" height="40" fill="url(#panot)"/><rect x="${x}" y="${G-8}" width="${w}" height="3" fill="#3c4884"/>`;
 const ORDRE=['andreu','gabriel','lluc','quim','roger','pau'];
 const fila=()=>`<svg viewBox="0 36 744 204" role="img" aria-label="Els sis músics de La Ludwig Band">`+ORDRE.map((id,i)=>`<circle cx="${62+i*124}" cy="118" r="100" fill="url(#llum)" opacity=".85"/>`).join('')+terraSvg(0,744)+ORDRE.map((id,i)=>{const m=MUSICS.find(m=>m.id===id);return ninot(m,62+i*124,m.poseFinal)}).join('')+`</svg>`;
-$('inici-esc').innerHTML=fila();$('final-esc').innerHTML=fila();
+$('inici-esc').innerHTML=fila();
 $('barra').innerHTML=FASES.map((f,i)=>`<b style="width:${(f.fi-f.inici)/FINAL*100}%;background:${MUSICS[i].roba}"></b>`).join('')+'<em id="marca"></em>';
 
 /* àudio */
@@ -1024,7 +1061,8 @@ function comenca(mode,des){
   E.mode=mode;E.estat='joc';E.cai=null;E.finalFet=false;E.fase=-1;E.des=des;E.snap=true;E.gracia=des>0?des-.25:-1;
   if(des===0){E.encerts=0;E.perfectes=0;E.intents=0}
   if(mode==='joc')E.intents++;
-  cami.events.forEach(e=>{e.fet=e.t<des});E.idx=cami.events.findIndex(e=>!e.fet);if(E.idx<0)E.idx=cami.events.length;
+  /* cada gir guarda la desviació del seu darrer encert; en tornar a fer una fase, els de la fase es tornen a comptar */
+  cami.events.forEach(e=>{e.fet=e.t<des;if(des===0||e.t>=des)e.dt=null});E.idx=cami.events.findIndex(e=>!e.fet);if(E.idx<0)E.idx=cami.events.length;
   ['inici','caiguda','final','pausa'].forEach(id=>$(id).hidden=true);$('hud').hidden=false;$('mode-tag').hidden=mode!=='passeig';$('lletra').hidden=true;
   $('b-pausa').hidden=false;
   if(des===0)sona(0,1.4);else sona(des-1,.5);
@@ -1034,7 +1072,7 @@ let tAvis=null;
 function avis(t,s,ms){$('avis-t').textContent=t;$('avis-s').textContent=s;$('avis-s').hidden=!s;$('avis').classList.add('on');clearTimeout(tAvis);tAvis=setTimeout(()=>$('avis').classList.remove('on'),ms||1800)}
 function actualitzaHud(i){const m=MUSICS[i];$('pill-c').style.background=m.roba;$('pill-t').innerHTML=`${m.nom} <span>· ${m.inst}</span>`;[...$('barra').children].forEach((b,k)=>{if(b.tagName==='B')b.classList.toggle('feta',k<=i)})}
 function flota(s){const el=document.createElement('div');el.className='flota';el.textContent=s;el.style.left='50%';el.style.top='52%';$('app').appendChild(el);setTimeout(()=>el.remove(),850)}
-function encert(e,t,auto){e.fet=true;E.idx++;if(auto)return;E.encerts++;const dt=Math.abs(t-e.t);if(dt<.06){E.perfectes++;flota('Perfecte!')}else flota('Bé')}
+function encert(e,t,auto){e.fet=true;E.idx++;if(auto)return;E.encerts++;e.dt=t-e.t;if(Math.abs(e.dt)<.06){E.perfectes++;flota('Perfecte!')}else flota('Bé')}
 const tolDe=e=>e.tipus==='salt'?.11:TOL;
 function pendent(t){return (cami.xAt(t)-cami.xAt(t-.05))/.05}
 function caure(motiu,e){
@@ -1062,10 +1100,22 @@ $('b-tornahi').onclick=()=>comenca('joc',FASES[E.cai?E.cai.fase:0].inici);
 $('b-cai-passeig').onclick=()=>comenca('passeig',FASES[E.cai?E.cai.fase:0].inici);
 $('b-inici').onclick=()=>comenca('joc',0);
 $('b-repeteix').onclick=()=>comenca('joc',0);
+const milers=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+/* marcador: cops perfectes, desviació total en valor absolut (els tocs avançats no compensen els endarrerits) i intents */
 function mostraFinal(){
   E.finalFet=true;const tot=cami.events.length;
-  $('final-x').innerHTML=E.mode==='passeig'?`<span>Has fet el passeig sencer</span>`:`<span>Encerts <b>${E.encerts}</b> de <b>${tot}</b></span><span>Perfectes <b>${E.perfectes}</b></span><span>Intents <b>${E.intents}</b></span>`;
-  $('final-t').textContent=E.mode==='passeig'?'Passeig acabat':(E.intents===1?'Nit perfecta, a la primera!':'Nit completada');
+  $('hud').hidden=true;$('lletra').hidden=true;
+  const fets=cami.events.filter(e=>e.dt!=null),perf=fets.filter(e=>Math.abs(e.dt)<.06).length;
+  const desv=Math.round(fets.reduce((a,e)=>a+Math.abs(e.dt),0)*1000);
+  if(E.mode==='passeig'){$('marcador').hidden=true;$('final-t').textContent='Passeig acabat';$('final-nota').textContent='En mode passeig no hi ha marcador. Juga per tenir els teus cops perfectes i la desviació.'}
+  else{
+    $('marcador').hidden=false;
+    $('m-perf').textContent=perf;$('m-perf-de').textContent=`de ${tot}`;
+    $('m-desv').textContent=milers(desv);$('m-desv-mitja').textContent=`ms · ${(desv/Math.max(1,fets.length)).toFixed(1).replace('.',',')} ms per cop`;
+    $('m-int').textContent=E.intents;$('m-int-txt').textContent=E.intents===1?'a la primera':'en aquesta partida';
+    $('final-t').textContent=E.intents===1?'Nit perfecta, a la primera!':'Nit completada';
+    $('final-nota').textContent='Guanya qui suma menys mil·lisegons.';
+  }
   $('final').hidden=false;
 }
 function logica(t){
@@ -1074,8 +1124,8 @@ function logica(t){
   if(e&&E.mode==='joc'&&t>e.t+tolDe(e)){caure('tard',e);return}
   if(t>=0){const f=faseDe(t);if(f!==E.fase){E.fase=f;actualitzaHud(f);if(t<FINAL&&(t-FASES[f].inici<1.5||f===faseDe(E.des))){const m=MUSICS[f];avis(`Fase ${f+1} · ${m.nom}`,FASES[f].tipus==='salt'?'Toca per saltar':'Toca per girar',2000)}}}
   $('marca').style.left=Math.max(0,Math.min(100,t/FINAL*100))+'%';
-  if(LLETRA.length&&$('opt-sota').checked){let l=null;for(const x of LLETRA){if(x.t<=t)l=x;else break}const vis=!!l&&t-l.t<6;$('lletra').hidden=!vis;if(vis&&$('lletra').textContent!==l.text)$('lletra').textContent=l.text}else $('lletra').hidden=true;
-  if(t>=FINAL+2.2&&!E.finalFet)mostraFinal();
+  if(LLETRA.length&&$('opt-sota').checked&&!E.finalFet){let l=null;for(const x of LLETRA){if(x.t<=t)l=x;else break}const vis=!!l&&t-l.t<6;$('lletra').hidden=!vis;if(vis&&$('lletra').textContent!==l.text)$('lletra').textContent=l.text}else $('lletra').hidden=true;
+  if(t>=FINAL+4.5&&!E.finalFet)mostraFinal();
   if(t>=FINAL+2.2)$('b-pausa').hidden=true;
   if(t>=MAPA.durada){E.estat='fi';atura(false)}
 }
