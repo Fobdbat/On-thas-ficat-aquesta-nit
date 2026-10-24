@@ -507,21 +507,25 @@ const PALETA={eixample:['#d9b88a','#e2c69c','#cfa77a','#e8d2b0','#d6ad86'],rambl
   guinardo:['#e9b7a0','#f0d39a','#bfd3b8','#d9c2e0','#f2e3c7','#e8c4a8'],gracia:['#e8c7a0','#d7a98a','#efd9b8','#c9b8a0','#e5b9a0'],sagrera:['#c9ccd2','#b8bcc4','#d6d2c8','#c2b8aa']};
 const BOTIGUES=['FORN','FARMÀCIA','QUEVIURES','LLIBRERIA','FERRETERIA','FLORS','BAR','PERRUQUERIA','FRUITES','MERCERIA','BODEGA','PAPERERIA','PEIXATERIA','XOCOLATERIA'];
 /* escenes que explica la cançó, situades al moment del vers */
-function escenes(){
+function escenes(cami){
   const zz=t=>S*(t+2.0);
+  /* Al mòbil, el que és al costat del camí surt de pantalla abans que el corredor hi arribi (quan la càmera és a |x|·2,2 m).
+     ve(i,x): l'escena encara es veu mig segon després que s'acabi el vers i, i com a mínim 2,2 s després que comenci. */
+  /* la càmera segueix el corredor de costat (70 %): es compta la distància lateral real a la càmera en aquell moment */
+  const ve=(i,x)=>{const surt=Math.max(V_(i)+2.2,V_(i+1)+.5),cx=cami?cami.xAt(surt)*.7:0,avanc=Math.max(0,(Math.abs(x-cx)*2.2-CAMD)/S);return S*(surt+avanc)};
   return [
     {z:zz(V_(4)),x:5.6,tipus:'versos'},
-    {z:zz(V_(13)),x:6.8,tipus:'havaneres'},
-    {z:zz(V_(14)),x:6.5,tipus:'avis'},
-    {z:zz(V_(17)),x:5.6,tipus:'globus'},
-    {z:S*(V_(13)-1.6)+2,x:-7.2,tipus:'colom'},
-    {z:zz(V_(24)),x:-5.9,tipus:'sardana'},
-    {z:zz(V_(26)),x:5.8,tipus:'cobla'},
-    {z:zz(V_(27)),x:-6.1,tipus:'endevina'},
-    {z:zz(V_(32)),x:6.3,tipus:'bafle'},
+    {z:ve(13,6.8),x:6.8,tipus:'havaneres'},
+    {z:ve(14,6.5),x:6.5,tipus:'avis'},
+    {z:ve(18,5.6),x:5.6,tipus:'globus'},
+    {z:S*(V_(13)-1.6)-1,x:-5.7,tipus:'colom'},
+    {z:ve(24,5.9),x:-5.9,tipus:'sardana'},
+    {z:ve(26,5.8),x:5.8,tipus:'cobla'},
+    {z:ve(28,6.1),x:-6.1,tipus:'endevina'},
+    {z:ve(32,6.3),x:6.3,tipus:'bafle'},
     {z:zz(V_(36)),x:-6.4,tipus:'aficio'},{z:zz(V_(38)),x:6.4,tipus:'aficio'},{z:zz(V_(39)),x:-6.4,tipus:'aficio'},
     {z:zz(V_(40)),x:6.0,tipus:'tangana'},
-    {z:zz(V_(50)),x:5.4,tipus:'plat'},
+    {z:ve(50,5.4),x:5.4,tipus:'plat'},
     {z:zz(V_(55)),x:-5.6,tipus:'cambrera'},
     {z:zz(V_(58)),x:5.8,tipus:'adeu'},
     {z:zz(V_(60)),x:5.4,tipus:'revisor'},
@@ -536,7 +540,7 @@ function construeixCiutat(cami){
   const Rn=rng(20261023);
   const edificis=[],bb=[],pancartes=[],plaques=[];
   // talls (carrers transversals) obligats
-  const tallsObligats=[S*V_(35)+14];
+  const tallsObligats=[S*V_(35)+26];
   for(const z of ZONES){
     const za=Math.max(-60,z.t0*S),zb=Math.min((MAPA.durada+12)*S,z.t1*S);
     for(const side of [-1,1]){
@@ -550,7 +554,7 @@ function construeixCiutat(cami){
         let L=10+Rn()*9;if(zc+L>zb-2)L=zb-2-zc;if(L<6)break;
         const tall=tallsObligats.find(q=>q>zc&&q<zc+L+9);
         if(tall){if(tall-zc>6){edificis.push(nouEdifici(side,zc,tall-1,z,Rn))}zc=tall+8;n=0;
-          const e=nouEdifici(side,zc,zc+14,z,Rn);e.placa=side<0?'Alfons X':'Ronda del Guinardó';edificis.push(e);zc+=14;n=1;continue}
+          const e=nouEdifici(side,zc,zc+14,z,Rn);if(side<0)e.placa='Alfons X';else bb.push({tipus:'placapal',x:5.6,z:zc-.6,escena:true,s:.5});edificis.push(e);zc+=14;n=1;continue}
         edificis.push(nouEdifici(side,zc,zc+L,z,Rn));zc+=L;n++;
       }
     }
@@ -563,7 +567,7 @@ function construeixCiutat(cami){
   // trets especials en edificis existents
   const enZ=(side,z)=>edificis.find(e=>e.side===side&&z>=e.z0&&z<=e.z1);
   const neo=enZ(1,S*V_(6)+12);if(neo){neo.neo=true}
-  for(const e of edificis)if(e.z1>S*V_(11)&&e.z0<S*(V_(12)+3.5))e.plantes=true;
+  const PL0=S*V_(12)+8,PL1=S*V_(13)+38;for(const e of edificis)if(e.z1>PL0&&e.z0<PL1)e.plantes=true;
   const barAvis=enZ(1,S*(V_(14)+1.25));if(barAvis)barAvis.bar='BAR';
   const barPlat=enZ(1,S*(V_(50)+1.25));if(barPlat)barPlat.bar='BAR';
   const barCamb=enZ(-1,S*(V_(55)+1.25));if(barCamb)barCamb.bar='BAR';
@@ -604,7 +608,8 @@ function construeixCiutat(cami){
       if(r<.06)bb.push({tipus:['bici','contenidors','vianant'][Math.floor(Rn()*3)],x:costat()*(6.2+Rn()*2.6),z,s:Rn()});
     }
   }
-  for(const e of escenes())bb.push({...e,escena:true,s:Rn()});
+  for(const e of escenes(cami))bb.push({...e,escena:true,s:Rn()});
+  { const PL0=S*V_(12)-6,PL1=S*V_(13)+38;for(let i=bb.length-1;i>=0;i--){const b=bb[i];if(/platan|arbre|palmera/.test(b.tipus)&&b.z>PL0&&b.z<PL1)bb.splice(i,1)} }
   // obstacles (palanganes) i tobogans
   const salts=cami.events.filter(e=>e.tipus==='salt');
   const obst=salts.map((e,i)=>{const nx=i+1<salts.length?salts[i+1].t:e.t+1,d=Math.min(SALT,.85*(nx-e.t));return {tipus:'palangana',x:cami.xAt(e.t+d/2),z:cami.zAt(e.t+d/2),t:e.t,d,obst:true}});
@@ -708,8 +713,8 @@ D.avis=(c,p,t)=>{ombra(c,0,0,60,9);
   caixa(c,-32,-44-(clink?4:0),5,10,1,'rgba(240,210,120,.95)',1);caixa(c,0,-46-(clink?6:0),5,10,1,'rgba(240,210,120,.95)',1);caixa(c,28,-44-(clink?4:0),5,10,1,'rgba(240,210,120,.95)',1)};
 D.globus=(c,p,t)=>{ombra(c,0,0,24,6);caixa(c,-12,-22,24,22,2,'#b9b2a3',1.8);cercle(c,0,-50,24,'#3f6fd6',2);c.save();c.beginPath();c.arc(0,-50,24,0,6.28);c.clip();punt(c,-8,-56,9,'#4f9a52');punt(c,10,-44,7,'#4f9a52');punt(c,2,-64,5,'#4f9a52');c.restore();
   c.beginPath();c.ellipse(0,-50,40,11,-.3,0,6.28);c.strokeStyle='#e9b83f';c.lineWidth=2;c.stroke();const a=t*2.2;cercle(c,Math.cos(a)*40*Math.cos(-.3)-Math.sin(a)*11*Math.sin(-.3),-50+Math.cos(a)*40*Math.sin(-.3)+Math.sin(a)*11*Math.cos(-.3),4,'#f2ead9',1.4)};
-D.colom=(c,p,t,L)=>{ombra(c,0,0,60,10);caixa(c,-56,-60,112,60,3,'#b9b2a3',2);caixa(c,-40,-110,80,50,3,'#a8a193',2);caixa(c,-14,-560,28,450,6,'#9a8f7e',2);for(let i=1;i<9;i++)lin(c,-14,-110-i*50,14,-110-i*50,'rgba(20,18,31,.3)',1.4);
-  caixa(c,-26,-590,52,30,4,'#8a7f6c',2);cercle(c,0,-602,10,'#8a6a3a',1.6);caixa(c,-6,-640,12,38,4,'#8a6a3a',1.6);lin(c,4,-630,26,-650,'#8a6a3a',4);
+D.colom=(c,p,t,L)=>{ombra(c,0,0,60,10);caixa(c,-56,-60,112,60,3,'#b9b2a3',2);caixa(c,-40,-110,80,50,3,'#a8a193',2);caixa(c,-15,-330,30,220,6,'#9a8f7e',2);for(let i=1;i<5;i++)lin(c,-15,-110-i*44,15,-110-i*44,'rgba(20,18,31,.3)',1.4);
+  caixa(c,-27,-358,54,28,4,'#8a7f6c',2);cercle(c,0,-372,12,'#8a6a3a',1.6);caixa(c,-7,-414,14,42,4,'#8a6a3a',1.6);lin(c,5,-404,30,-426,'#8a6a3a',4.4);
   [[-40,-60],[40,-60]].forEach(([dx])=>{el(c,dx,-70,18,9,'#8a6a3a',1.6)})};
 D.sardana=(c,p,t)=>{ombra(c,0,0,90,26);el(c,0,-10,80,24,'rgba(242,234,217,.12)',0);const n=9,ar=Math.sin(t*6.45)>0;const ps=[];
   for(let i=0;i<n;i++){const a=t*.5+i*6.283/n;ps.push({x:Math.cos(a)*56,y:-10+Math.sin(a)*18,i})}ps.sort((a,b)=>a.y-b.y);
@@ -753,6 +758,9 @@ D.public=(c,p,t,L)=>{
     c.restore();
   }
 };
+/* placa del carrer en un pal a la vorera, de cara a la càmera: al mòbil es llegeix sencera */
+D.placapal=(c)=>{ombra(c,0,0,9,3);caixa(c,-3.5,-112,7,112,2,'#2f3446',1.5);caixa(c,-54,-160,108,52,7,'#f4efe4',2.4);caixa(c,-48,-154,96,40,5,'rgba(0,0,0,0)',1.2);
+  txt(c,'Ronda del',0,-144,18,INK);txt(c,'Guinardó',0,-124,20,INK)};
 D.escenari=(c,p,t,L)=>{ombra(c,0,0,160,14);caixa(c,-150,-24,300,24,3,'#3a3550',2);caixa(c,-150,-130,10,106,2,'#2f3446',1.6);caixa(c,140,-130,10,106,2,'#2f3446',1.6);
   caixa(c,-150,-138,300,14,3,'#d03b55',2);for(let i=0;i<14;i++)poli(c,[-146+i*21,-124,-136+i*21,-112,-126+i*21,-124],COLS[i%8],1);
   for(let i=0;i<4;i++){const lx=-110+i*73,on=.6+.4*Math.sin(t*6.45+i);caixa(c,lx-8,-132,16,10,2,'#fff3c4',1.4);L.push({x:lx,y:-80,r:70,col:'255,230,170',a:.45*on})}};
@@ -867,7 +875,10 @@ function facana(c,e,t,L,FOG,opts){
   rectF(c,x,z0,z1,0,e.h,col,1.6);
   const s0=pj(x,0,z0)[2],lod=s0;
   if(e.estil==='estadi'){for(let z=Math.ceil(e.z0/12)*12;z<z1;z+=12){if(z<z0)continue;rectF(c,x,z+1,z+4,0,4.2,'#3a3f4e',1.2);for(let k=1;k<4;k++){const a=pj(x,0,z+1+k*.75),b=pj(x,4.2,z+1+k*.75);lin(c,a[0],a[1],b[0],b[1],'#9aa0ad',Math.max(1,a[2]*.04))}}
-    const zg=S*(V_(41)+1.3);if(zg>z0&&zg<z1){rectF(c,x,zg-3,zg+3,0,5.5,'#2f3446',1.6);textF(c,e.side,x+e.side*-.05,zg-3.5,zg+3.5,6,7.4,'CAMP DE FUTBOL','#f4efe4',30)}
+    const zp=S*(V_(41)+1.3);if(zp>z0&&zp<z1){rectF(c,x,zp-3,zp+3,0,5.5,'#2f3446',1.6)}
+    /* rètol gran a la paret: 22 m de llarg i 3,8 m d'alt */
+    const zg=S*(V_(41)+2.6),ra=Math.max(zg-11,z0),rb=Math.min(zg+11,z1);
+    if(rb>ra){rectF(c,x+e.side*-.03,ra,rb,5.7,9.9,'#2f3446',1.8);if(zg-10.5>=z0&&zg+10.5<=z1)textF(c,e.side,x+e.side*-.07,zg-10.5,zg+10.5,6.0,9.6,'CAMP DE FUTBOL','#f4efe4',44)}
     rectF(c,x,z0,z1,e.h-1,e.h,'#8a1f34',1);return}
   if(e.estil==='muralla'){for(let z=Math.ceil(e.z0/2)*2;z<z1;z+=2){if(z<z0)continue;rectF(c,x,z,z+1.1,e.h,e.h+1.1,col,1.2)}
     if(lod>6){for(let r=0;r<5;r++){const yy=1+r*2.1;const a=pj(x,yy,z0),b=pj(x,yy,z1);lin(c,a[0],a[1],b[0],b[1],'rgba(20,18,31,.25)',Math.max(.6,a[2]*.03))}}
@@ -885,7 +896,7 @@ function facana(c,e,t,L,FOG,opts){
         rectF(c,x,zc-.62,zc+.62,y0+.5,y0+2.4,enc?'#ffd98a':'#3a4466',lod>10?1:0);
         if(enc&&lod>8){const q=pj(x,y0+1.4,zc);L.push({x:q[0],y:q[1],r:q[2]*1.5,col:'255,200,120',a:.42})}
         if(e.persianes&&lod>12){rectF(c,x,zc-1.05,zc-.66,y0+.5,y0+2.4,'#3f6b4a',.8);rectF(c,x,zc+.66,zc+1.05,y0+.5,y0+2.4,'#3f6b4a',.8)}
-        if(lod>14&&(e.estil!=='sagrera')){balco(c,e,x,zc,y0+.45,lod)}
+        if((lod>14||(e.plantes&&lod>6))&&(e.estil!=='sagrera')){balco(c,e,x,zc,y0+.45,lod)}
       }}
   }
   // planta baixa: botigues
@@ -906,9 +917,11 @@ function balco(c,e,x,zc,yb,lod){
   const t0=pj(x+o,yb+1,zc-.95),t1=pj(x+o,yb+1,zc+.95);lin(c,t0[0],t0[1],t1[0],t1[1],INK,Math.max(1,t0[2]*.05));
   for(let k=0;k<=4;k++){const zz=zc-.95+k*.475,a=pj(x+o,yb,zz),b=pj(x+o,yb+1,zz);lin(c,a[0],a[1],b[0],b[1],INK,Math.max(.6,a[2]*.03))}
   lin(c,B[0],B[1],t0[0],t0[1],INK,Math.max(.6,B[2]*.03));
-  if(e.plantes){// alfàbrega (rodona) i llorer (alt)
-    const p1=pj(x+o*.6,yb+1.25,zc-.45),p2=pj(x+o*.6,yb+1.45,zc+.45);caixa(c,p1[0]-p1[2]*.18,p1[1]+p1[2]*.05,p1[2]*.36,p1[2]*.3,2,'#c56a3d',1);cercle(c,p1[0],p1[1],p1[2]*.28,'#5aa84e',1);
-    caixa(c,p2[0]-p2[2]*.18,p2[1]+p2[2]*.25,p2[2]*.36,p2[2]*.3,2,'#c56a3d',1);el(c,p2[0],p2[1],p2[2]*.2,p2[2]*.42,'#2f6a43',1)}
+  if(e.plantes){// alfàbrega (rodona, verd clar) i llorer (alt, verd fosc), més grans i amb fulles que pengen
+    const p1=pj(x+o*.6,yb+1.35,zc-.5),p2=pj(x+o*.6,yb+1.75,zc+.45),k1=p1[2],k2=p2[2];
+    caixa(c,p1[0]-k1*.26,p1[1]+k1*.12,k1*.52,k1*.42,2,'#c56a3d',1.2);cercle(c,p1[0]-k1*.12,p1[1],k1*.3,'#5aa84e',1.1);cercle(c,p1[0]+k1*.14,p1[1]-k1*.06,k1*.32,'#6cbf5c',1.1);cercle(c,p1[0],p1[1]-k1*.26,k1*.26,'#7fd06a',1);
+    caixa(c,p2[0]-k2*.24,p2[1]+k2*.55,k2*.48,k2*.42,2,'#b85e34',1.2);el(c,p2[0],p2[1],k2*.3,k2*.7,'#2f6a43',1.2);el(c,p2[0]+k2*.08,p2[1]-k2*.15,k2*.16,k2*.4,'#3d8253',0);
+    const r0=pj(x+o,yb+.95,zc-.9),r1=pj(x+o,yb+.95,zc+.9);for(let i=0;i<5;i++){const u=i/4,hx=r0[0]+(r1[0]-r0[0])*u,hy=r0[1]+(r1[1]-r0[1])*u;el(c,hx,hy+k1*.12,k1*.1,k1*.22,'#5aa84e',.8)}}
 }
 function paretFinal(c,e,t,L,FOG){
   const zo=ZONES.find(z=>z.id===e.zona)||zonaZ(e.z0);if(e.estil==='estadi'||!zo)return;const x=e.side*zo.fac,x2=x+e.side*14;
