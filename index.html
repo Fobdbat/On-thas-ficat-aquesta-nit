@@ -763,7 +763,49 @@ D.placapal=(c)=>{ombra(c,0,0,9,3);caixa(c,-3.5,-112,7,112,2,'#2f3446',1.5);caixa
   txt(c,'Ronda del',0,-144,18,INK);txt(c,'Guinardó',0,-124,20,INK)};
 D.escenari=(c,p,t,L)=>{ombra(c,0,0,160,14);caixa(c,-150,-24,300,24,3,'#3a3550',2);caixa(c,-150,-130,10,106,2,'#2f3446',1.6);caixa(c,140,-130,10,106,2,'#2f3446',1.6);
   caixa(c,-150,-138,300,14,3,'#d03b55',2);for(let i=0;i<14;i++)poli(c,[-146+i*21,-124,-136+i*21,-112,-126+i*21,-124],COLS[i%8],1);
-  for(let i=0;i<4;i++){const lx=-110+i*73,on=.6+.4*Math.sin(t*6.45+i);caixa(c,lx-8,-132,16,10,2,'#fff3c4',1.4);L.push({x:lx,y:-80,r:70,col:'255,230,170',a:.45*on})}};
+  for(let i=0;i<4;i++){const lx=-110+i*73,on=.6+.4*Math.sin(t*6.45+i);caixa(c,lx-8,-132,16,10,2,'#fff3c4',1.4);L.push({x:lx,y:-80,r:70,col:'255,230,170',a:.45*on})}
+  /* cartell de neó «LA LUDWIG BAND» damunt de la tarima: panell fosc i alt que tapa el sol del darrere.
+     Segons l'espai que quedi per sobre de la tarima en pantalla: cartell alt (dues línies) o ample (una línia), reduït si cal. */
+  const mt=c.getTransform(),ky=mt.d/DPR,marge=Wc>Hc*1.1?36:58,lliure=(mt.f/DPR-marge)/ky-140;
+  const alt=lliure>=125,sg=alt?SIGNES.alt():SIGNES.ample(),hh=alt?160:84,f=Math.max(.35,Math.min(1,lliure/hh)),m4=SIGNE_M/4;
+  const pu=.5+.5*Math.sin(t*6.45);
+  for(const x of [-120,-40,40,120])caixa(c,x-5,-143,10,7,1,'#2f3446',1.4);
+  c.save();c.translate(0,-140);c.scale(f,f);c.drawImage(sg,-146-m4,-hh-m4,292+2*m4,hh+2*m4);c.restore();
+  const yc=-140-hh*f/2;
+  L.push({x:0,y:yc,r:230*f+40,col:'255,90,170',a:.16+.12*pu});L.push({x:0,y:yc,r:150*f+30,col:'255,205,90',a:.10+.08*pu})};
+/* el cartell es dibuixa una sola vegada en un llenç a part (el neó amb resplendor costa massa de pintar a cada fotograma) */
+const SIGNE_M=40,SIGNES={_a:null,_w:null,alt(){return this._a||(this._a=fesSigne(true))},ample(){return this._w||(this._w=fesSigne(false))},reinicia(){this._a=this._w=null}};
+if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',()=>SIGNES.reinicia());
+function fesSigne(alt){
+  const q=4,m=SIGNE_M,pw=292*q,ph=(alt?160:84)*q,cv=document.createElement('canvas');cv.width=pw+2*m;cv.height=ph+2*m;
+  const g=cv.getContext('2d');g.translate(m,m);
+  const cami_=(x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()};
+  /* panell fosc, gairebé opac: el sol no s'hi veu per darrere */
+  cami_(0,0,pw,ph,alt?40:30);g.fillStyle='rgba(15,13,38,0.45)';g.fill();
+  const gr=g.createLinearGradient(0,0,0,ph);gr.addColorStop(0,'rgba(120,60,170,.30)');gr.addColorStop(1,'rgba(255,80,160,.14)');cami_(0,0,pw,ph,alt?40:30);g.fillStyle=gr;g.fill();
+  /* tub de neó rosa al voltant */
+  const ins=alt?26:20;
+  g.save();g.shadowColor='#ff2d95';g.shadowBlur=38;g.lineJoin='round';
+  cami_(ins,ins,pw-2*ins,ph-2*ins,alt?30:22);g.strokeStyle='#ff5fb0';g.lineWidth=alt?16:13;g.stroke();
+  g.shadowBlur=14;cami_(ins,ins,pw-2*ins,ph-2*ins,alt?30:22);g.strokeStyle='#ffe2f2';g.lineWidth=alt?5:4;g.stroke();g.restore();
+  /* lletres de neó */
+  const fam='"Bungee","Arial Black",Impact,system-ui,sans-serif';
+  const ajusta=(txt,maxW,maxS)=>{g.font=`400 ${maxS}px ${fam}`;const w=g.measureText(txt).width;return w>maxW?Math.floor(maxS*maxW/w):maxS};
+  g.textAlign='center';g.textBaseline='middle';
+  const lletres=(txt,y,S,core,glow)=>{
+    g.font=`400 ${S}px ${fam}`;
+    g.save();g.shadowColor=glow;g.shadowBlur=46;g.fillStyle=glow;g.fillText(txt,pw/2,y);g.restore();
+    g.save();g.shadowColor=glow;g.shadowBlur=22;g.lineWidth=Math.max(5,S*.05);g.strokeStyle=glow;g.strokeText(txt,pw/2,y);g.fillStyle=core;g.fillText(txt,pw/2,y);g.restore();
+  };
+  if(alt){
+    const s1=ajusta('LA LUDWIG',pw*.78,200),s2=Math.min(ajusta('BAND',pw*.62,330),Math.round(ph*.40));
+    lletres('LA LUDWIG',ph*.31,s1,'#fff6c8','#ffb22e');lletres('BAND',ph*.70,s2,'#fff6c8','#ff6fb4');
+  }else{
+    const s1=Math.min(ajusta('LA LUDWIG BAND',pw*.84,300),Math.round(ph*.46));
+    lletres('LA LUDWIG BAND',ph*.52,s1,'#fff6c8','#ffb22e');
+  }
+  return cv;
+}
 const ESCALA={platan:1,arbre:1.05,palmera:1.05,fanal:1,colom:1,focus:1,grua:1.6,barca:1.4,escenari:1.25,endevina:1.05,bafle:1.05,aficio:1,tangana:1.1,havaneres:1.05,sardana:1.05,versos:1.3,avis:1.3,globus:1.3,cobla:1.3,plat:1.3,cambrera:1.3,adeu:1.3,revisor:1.3,lleo:1.3};
 // ---------- projecció ----------
 const V3={W:0,H:0,F:0,HZ:0,cx:0,cy:CAMY,cz:0};
@@ -814,7 +856,9 @@ function dibuixaCarrer(c,t,ciutat,cami,actors,opts){
   const g=c.createLinearGradient(0,0,0,HZ);g.addColorStop(0,`rgb(${cl.dalt.join(',')})`);g.addColorStop(1,`rgb(${cl.baix.join(',')})`);c.fillStyle=g;c.fillRect(0,0,W,HZ+2);
   const nit=t<SOL-5?1:Math.max(0,1-(t-(SOL-5))/14);
   if(nit>0){for(let i=0;i<60;i++){const x=(i*137.5)%W,y=((i*91.7)%1)*HZ*.8+((i*53)%HZ)*.15;punt(c,(x+W)%W,(i*71.3)%(HZ*.85),1.1,`rgba(255,255,240,${.7*nit})`)}cercle(c,W*.78,HZ*.28,Math.min(W,H)*.035,`rgba(250,245,220,${nit})`,0)}
-  if(t>SOL-4){const u=Math.min(1,(t-(SOL-4))/30);const sy=HZ-u*HZ*.55;cercle(c,W/2,sy,Math.min(W,H)*.05,'#ffd27a',0);L.push({x:W/2,y:sy,r:Math.min(W,H)*.35,col:'255,190,110',a:.55*Math.min(1,(t-(SOL-4))/6),pant:true})}
+  if(t>SOL-4){const u=Math.min(1,(t-(SOL-4))/30);const sy=HZ-u*HZ*0.55,fi=1;   // a la tarima final el cartell tapa el sol
+    if(fi>0){c.save();c.globalAlpha=fi;cercle(c,W/2,sy,Math.min(W,H)*0.085,'#ffd27a',0);c.restore()}
+    L.push({x:W/2,y:sy,r:Math.min(W,H)*.35,col:'255,190,110',a:.55*Math.min(1,(t-(SOL-4))/6)*(t>FINAL?Math.max(.1,fi):1),pant:true})}
   silueta(c,t,zonaZ(V3.cz+40).id);
   // terra
   c.fillStyle=boira(zonaZ(V3.cz+30).voravia,30,FOG);c.fillRect(0,HZ,W,H-HZ);
