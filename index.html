@@ -615,7 +615,7 @@ function construeixCiutat(cami){
   const obst=salts.map((e,i)=>{const nx=i+1<salts.length?salts[i+1].t:e.t+1,d=Math.min(SALT,.85*(nx-e.t));return {tipus:'palangana',x:cami.xAt(e.t+d/2),z:cami.zAt(e.t+d/2),t:e.t,d,obst:true}});
   const tobogans=FASES.slice(0,5).map((f,k)=>{const xb=cami.xAt(f.fi);const side=xb>0?-1:1;return {k,tb:f.fi,xa:cami.xAt(f.fi-.9),za:cami.zAt(f.fi-.9),xb,zb:cami.zAt(f.fi),sx:cami.xAt(f.fi+.4)+side*1.3,sz:cami.zAt(f.fi)+3.6}});
   // pancartes de llocs
-  pancartes.push({tipus:'lloc',z:S*V_(7)+11,text:'La Rambla'});
+  pancartes.push({tipus:'lloc',z:S*V_(7)+11,text:'Les Rambles'});
   pancartes.push({tipus:'lloc',z:S*V_(24)+10,text:'Festa Major del Guinardó'});
   pancartes.push({tipus:'lloc',z:S*V_(60)+2,text:'Estació de la Sagrera'});
   bb.sort((a,b)=>a.z-b.z);
